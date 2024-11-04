@@ -1,0 +1,16 @@
+name: root
+
+on:
+  workflow_call:
+  pull_request:
+
+jobs:
+  child_01_build:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          echo "Building for environment '${{ github.ref_name }}'"
+          echo "PASSKEY=${{ secrets.PASSKEY }}"
+          echo "ENV_NAME=${{ vars.ENV_NAME }}"

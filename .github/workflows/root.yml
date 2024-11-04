@@ -1,0 +1,30 @@
+name: root
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+jobs:
+  child_01:
+    uses: ./.github/workflows/child_01.yml
+  child_02:
+    uses: ./.github/workflows/child_02.yml
+    needs:
+      - child_01
+  child_03:
+    uses: ./.github/workflows/child_03.yml
+  root_build:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name }}
+    needs:
+      - child_01
+      - child_02
+      - child_03
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          echo "Building for environment '${{ github.ref_name }}'"
+          echo "PASSKEY=${{ secrets.PASSKEY }}"
+          echo "ENV_NAME=${{ vars.ENV_NAME }}"
