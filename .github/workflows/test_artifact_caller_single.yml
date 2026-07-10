@@ -20,6 +20,8 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     environment: test-gated
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@v7
       - name: Write single marker file
@@ -34,7 +36,8 @@ jobs:
           } > artifact-out/marker.txt
           echo "setup wrote:"
           cat artifact-out/marker.txt
-      - uses: actions/upload-artifact@v7
+      - id: upload
+        uses: actions/upload-artifact@v7
         with:
           name: single-file-bundle
           path: artifact-out/marker.txt # single-file upload path
