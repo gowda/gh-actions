@@ -54,3 +54,16 @@ jobs:
     with:
       pre-build-artifact: multi-file-bundle
       pre-build-artifact-path: downloaded-artifact
+
+  cleanup-pre-build-artifact:
+    needs: [setup, publish]
+    if: ${{ always() && needs.setup.outputs.artifact_id != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ARTIFACT_ID: ${{ needs.setup.outputs.artifact_id }}
+        run: gh api -X DELETE "/repos/${GH_REPO}/actions/artifacts/${ARTIFACT_ID}"
