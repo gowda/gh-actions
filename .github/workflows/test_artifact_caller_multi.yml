@@ -20,6 +20,8 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     environment: test-gated
+    outputs:
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@v7
       - name: Write multiple files (flat + nested)
@@ -42,7 +44,8 @@ jobs:
           } > artifact-out/manifest.txt
           echo "setup wrote:"
           find artifact-out -type f | sort
-      - uses: actions/upload-artifact@v7
+      - id: upload
+        uses: actions/upload-artifact@v7
         with:
           name: multi-file-bundle
           path: artifact-out/ # directory upload path
