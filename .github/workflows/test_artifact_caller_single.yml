@@ -1,0 +1,48 @@
+name: TEST A — single-file artifact
+
+# Verification scenario A for PLAT-2401 (gha-workflows `pre-build-artifact` input).
+# `setup` job runs under `test-gated` environment (approval gate + env-scoped
+# secret access), writes ONE marker file, uploads as an artifact. `publish`
+# job needs: setup and calls the local reusable workflow that downloads the
+# artifact. Proves the artifact-passing pattern works for a single-file upload.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    environment: test-gated
+    steps:
+      - uses: actions/checkout@v7
+      - name: Write single marker file
+        env:
+          FAKE_SECRET: ${{ secrets.TEST_ARTIFACT_SECRET }}
+        run: |
+          mkdir -p artifact-out
+          {
+            echo "test_case=single-file"
+            echo "run_id=$GITHUB_RUN_ID"
+            echo "secret-marker=$FAKE_SECRET"
+          } > artifact-out/marker.txt
+          echo "setup wrote:"
+          cat artifact-out/marker.txt
+      - uses: actions/upload-artifact@v7
+        with:
+          name: single-file-bundle
+          path: artifact-out/marker.txt # single-file upload path
+          retention-days: 1
+
+  publish:
+    needs: setup
+    uses: ./.github/workflows/test_artifact_reusable.yml
+    with:
+      pre-build-artifact: single-file-bundle
+      pre-build-artifact-path: downloaded-artifact

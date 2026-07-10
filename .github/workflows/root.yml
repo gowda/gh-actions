@@ -23,7 +23,7 @@ jobs:
       - child_02
       - child_03
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: |
           echo "Building for environment '${{ github.ref_name }}'"
           echo "PASSKEY=${{ secrets.PASSKEY }}"

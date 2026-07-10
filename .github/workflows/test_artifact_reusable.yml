@@ -1,0 +1,46 @@
+name: TEST — artifact-download reusable
+
+# Minimal reusable workflow that mirrors the pattern being added to
+# `ananinja/gha-workflows/.github/workflows/publish-docker.yml` under PLAT-2401:
+# when `pre-build-artifact` is set, download it after checkout via
+# `actions/download-artifact@v8` (auto-detects current workflow run), then
+# print its contents. No AWS, no gradle, no docker — this workflow exists
+# only to prove the artifact-passing + env-gate pattern.
+
+on:
+  workflow_call:
+    inputs:
+      pre-build-artifact:
+        required: false
+        type: string
+        default: ""
+      pre-build-artifact-path:
+        required: false
+        type: string
+        default: "."
+
+jobs:
+  consume:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download pre-build artifact
+        if: inputs.pre-build-artifact != ''
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.pre-build-artifact }}
+          path: ${{ inputs.pre-build-artifact-path }}
+
+      - name: Show artifact tree
+        run: |
+          echo "=== Tree of ${{ inputs.pre-build-artifact-path }} ==="
+          find "${{ inputs.pre-build-artifact-path }}" \( -type f -o -type d \) | sort
+
+      - name: Print each file
+        run: |
+          find "${{ inputs.pre-build-artifact-path }}" -type f -exec sh -c '
+            echo "--- $1 ---"
+            cat "$1"
+            echo ""
+          ' _ {} \;
