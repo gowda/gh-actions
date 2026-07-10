@@ -8,6 +8,8 @@ name: TEST A — single-file artifact
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: read
@@ -33,7 +35,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: single-file-bundle
-          path: artifact-out/marker.txt         # single-file upload path
+          path: artifact-out/marker.txt # single-file upload path
           retention-days: 1
 
   publish:

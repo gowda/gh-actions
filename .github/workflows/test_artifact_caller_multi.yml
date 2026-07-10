@@ -10,6 +10,8 @@ name: TEST B — multi-file artifact (finance-service style)
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: read
@@ -43,7 +45,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         with:
           name: multi-file-bundle
-          path: artifact-out/                    # directory upload path
+          path: artifact-out/ # directory upload path
           retention-days: 1
 
   publish:
