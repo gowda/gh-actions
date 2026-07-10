@@ -1,12 +1,10 @@
-name: TEST B — multi-file artifact (finance-service style)
+name: TEST B — multi-file artifact
 
 # Verification scenario B for PLAT-2401 (gha-workflows `pre-build-artifact` input).
 # `setup` writes MULTIPLE files (flat at root plus a nested subdirectory)
 # under `artifact-out/` and uploads the whole tree as one artifact. `publish`
 # needs: setup and calls the reusable workflow, which downloads the tree at
-# the specified path. Mirrors the shape finance-service uses for its ZATCA
-# cert bundle (4 flat files under a single directory) with an added nested
-# path to prove directory-hierarchy preservation.
+# the specified path.
 
 on:
   workflow_dispatch:
