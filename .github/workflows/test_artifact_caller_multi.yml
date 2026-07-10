@@ -1,0 +1,54 @@
+name: TEST B — multi-file artifact (finance-service style)
+
+# Verification scenario B for PLAT-2401 (gha-workflows `pre-build-artifact` input).
+# `setup` writes MULTIPLE files (flat at root plus a nested subdirectory)
+# under `artifact-out/` and uploads the whole tree as one artifact. `publish`
+# needs: setup and calls the reusable workflow, which downloads the tree at
+# the specified path. Mirrors the shape finance-service uses for its ZATCA
+# cert bundle (4 flat files under a single directory) with an added nested
+# path to prove directory-hierarchy preservation.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    environment: test-gated
+    steps:
+      - uses: actions/checkout@v7
+      - name: Write multiple files (flat + nested)
+        env:
+          FAKE_SECRET: ${{ secrets.TEST_ARTIFACT_SECRET }}
+        run: |
+          mkdir -p artifact-out/subdir
+          # Flat files at root — finance-service ZATCA style
+          echo "cert-content-$FAKE_SECRET"        > artifact-out/cert.pem
+          echo "private-key-content-$FAKE_SECRET" > artifact-out/private-key.pem
+          echo "csr-content-$FAKE_SECRET"         > artifact-out/generated-csr.csr
+          echo "warmup-content-$FAKE_SECRET"      > artifact-out/warmup-cert.pem
+          # Nested file to prove directory hierarchy is preserved on download
+          echo "root-ca-content-$FAKE_SECRET"     > artifact-out/subdir/root-ca.pem
+          # Metadata / manifest at root
+          {
+            echo "test_case=multi-file"
+            echo "run_id=$GITHUB_RUN_ID"
+            echo "file_count=6"
+          } > artifact-out/manifest.txt
+          echo "setup wrote:"
+          find artifact-out -type f | sort
+      - uses: actions/upload-artifact@v7
+        with:
+          name: multi-file-bundle
+          path: artifact-out/                    # directory upload path
+          retention-days: 1
+
+  publish:
+    needs: setup
+    uses: ./.github/workflows/test_artifact_reusable.yml
+    with:
+      pre-build-artifact: multi-file-bundle
+      pre-build-artifact-path: downloaded-artifact
